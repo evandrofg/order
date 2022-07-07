@@ -1,0 +1,31 @@
+version: '2.1'
+orbs:
+    aws-cli: circleci/aws-cli@3.1
+    node: circleci/node@5.0.2
+    serverless-framework: circleci/serverless-framework@2.0
+jobs:
+    deploy:
+        executor: serverless-framework/default
+        steps:
+            - checkout
+            - aws-cli/setup:
+                  aws-access-key-id: AWS_ACCESS_KEY
+                  aws-region: AWS_REGION
+                  aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+            - serverless-framework/setup
+            - node/install-packages:
+                  pkg-manager: yarn
+            - run:
+                  command: serverless deploy --verbose
+                  name: deploy
+workflows:
+    deploy:
+        jobs:
+            - node/test:
+                  version: '14.19'
+                  pkg-manager: yarn
+            - deploy:
+                  context:
+                      - dev
+                  requires:
+                      - node/test
